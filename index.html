@@ -40,11 +40,11 @@ p.sub{color:var(--mute);max-width:32ch;line-height:1.55;font-size:15px}
 <div class="made">Made by Shakhruz, only for you</div>
 <script>
 (function(){
-var NAME='Farzona',GOAL=10,LAPS=36;
+var NAME='Farzona',GOAL=10,LAPS=20;
 var cv=document.getElementById('c'),ctx=cv.getContext('2d'),W,H,D=Math.min(window.devicePixelRatio||1,2),i;
 var off=document.createElement('canvas'),octx=off.getContext('2d');
 var stage='intro',stars=[],sparks=[],hearts=[],shoot=[],trail=[],pipes=[];
-var P={x:0,y:0,vy:0},started=false,score=0,inv=0,last=0,shake=0,u=0,prev=null,doneAt=0,winAt=0,fwT=0,lastGap=0;
+var P={x:0,y:0,vy:0},nameAt=0,started=false,score=0,inv=0,last=0,shake=0,u=0,prev=null,doneAt=0,winAt=0,fwT=0,lastGap=0;
 var msgEl=document.getElementById('msg'),hud=document.getElementById('hud');
 function rs(){W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;ctx.setTransform(D,0,0,D,0,0);
  off.width=W*D;off.height=H*D;octx.setTransform(D,0,0,D,0,0);if(stage==='draw'||stage==='show'){u=0;prev=null;stage='draw'}}
@@ -73,7 +73,7 @@ document.getElementById('orb').onclick=function(e){e.stopPropagation();spark(e.c
 function addPipe(){var gap=Math.max(185,H*.36),m=90+gap/2,y=Math.min(Math.max(lastGap+(Math.random()-.5)*H*.4,m),H-m);if(!lastGap)y=H/2;lastGap=y;
  pipes.push({x:W+60,gy:y,gap:gap,pass:false})}
 function drawStep(dt){
- var g=big(),n=Math.floor(u),speed=n===0?.3:Math.min(.55+n*.08,2.8),target=Math.min(u+dt*speed,LAPS),su=.004;
+ var g=big(),n=Math.floor(u),speed=n===0?1:Math.min(1.5+n*.3,5),target=Math.min(u+dt*speed,LAPS),su=.004;
  octx.lineCap='round';octx.shadowColor='#b030ff';octx.shadowBlur=6;
  while(u<target){var nu=Math.min(u+su,target),p=pos(nu,g);
   if(prev&&Math.floor(nu)===Math.floor(u)){octx.strokeStyle='hsla('+(268+(nu/LAPS)*45)+',95%,'+(n===0?72:58)+'%,'+(n===0?.95:.5)+')';
@@ -112,24 +112,25 @@ function frame(now){
   ctx.shadowBlur=0;
   if(stage==='play'){ctx.save();ctx.globalAlpha=inv>0&&Math.floor(now/90)%2?.35:1;ctx.fillStyle='#fff';ctx.shadowColor='#e090ff';ctx.shadowBlur=26;
    ctx.beginPath();ctx.arc(P.x,P.y,R,0,6.28);ctx.fill();ctx.restore()}
-  if(stage==='win'&&now-winAt>1500){stage='draw';pipes=[];say('You did it, '+NAME+' ✨')}
+  if(stage==='win'&&now-winAt>900){stage='draw';pipes=[];say('You did it, '+NAME+' ✨')}
  }
  if(stage==='draw'||stage==='show'){
   var g=big();
-  if(stage==='draw'&&now-winAt>3600){if(u<LAPS)drawStep(dt);else{stage='show';doneAt=now;fwT=0;
+  if(stage==='draw'&&now-winAt>1800){if(u<LAPS)drawStep(dt);else{stage='show';doneAt=now;fwT=0;
    var L=[NAME+', this was made just for you.','Every pixel begins with a line of code.','Tap anywhere — hearts will fly out.','Never lose your smile ✨'],k=0;
    (function nx(){say(L[k%L.length]);k++;setTimeout(nx,5200)})()}}
   var done=stage==='show',beat=done?1+.025*Math.sin((now-doneAt)/380):1;
   ctx.save();ctx.translate(g.cx,g.cy);ctx.scale(beat,beat);ctx.translate(-g.cx,-g.cy);
   ctx.globalCompositeOperation='lighter';ctx.shadowColor='#a020f0';ctx.shadowBlur=done?16:8;ctx.drawImage(off,0,0,W,H);ctx.restore();
   ctx.globalCompositeOperation='source-over';ctx.shadowBlur=0;
-  if(done||now-winAt>3600){var pu=done?((now-doneAt)/6000)%1:Math.min(u,LAPS-.001),pp=pos(pu,g);
+  if(u>=2&&!nameAt)nameAt=now;
+  if(nameAt){ctx.save();ctx.globalAlpha=Math.min((now-nameAt)/900,1);ctx.fillStyle='#fff';ctx.shadowColor='#b44bff';ctx.shadowBlur=22;ctx.textAlign='center';ctx.textBaseline='middle';
+   ctx.font='italic 600 '+Math.min(W/6.5,70)+'px Fraunces,Georgia,serif';ctx.fillText(NAME,g.cx,g.cy-4);ctx.restore()}
+  if(done||now-winAt>1800){var pu=done?((now-doneAt)/6000)%1:Math.min(u,LAPS-.001),pp=pos(pu,g);
    ctx.fillStyle='#fff';ctx.shadowColor='#e090ff';ctx.shadowBlur=22;ctx.beginPath();ctx.arc(pp[0],pp[1],done?3.2:4,0,6.28);ctx.fill();ctx.shadowBlur=0;
    if(!done&&Math.random()<.7)spark(pp[0],pp[1],1,1.4,280)}
-  if(done){var al=Math.min((now-doneAt)/2200,1);
-   ctx.save();ctx.globalAlpha=al;ctx.fillStyle='#fff';ctx.shadowColor='#b44bff';ctx.shadowBlur=22;ctx.textAlign='center';ctx.textBaseline='middle';
-   ctx.font='italic 600 '+Math.min(W/6.5,70)+'px Fraunces,Georgia,serif';ctx.fillText(NAME,g.cx,g.cy-4);ctx.restore();
-   ctx.font='13px serif';ctx.globalAlpha=al*.8;
+  if(done){var al=Math.min((now-doneAt)/1200,1);
+      ctx.font='13px serif';ctx.globalAlpha=al*.8;
    for(i=0;i<18;i++){var an=(now-doneAt)/5000+i/18*6.28;ctx.fillText('💜',g.cx+Math.cos(an)*g.sc*21,g.cy+Math.sin(an)*g.sc*17)}ctx.globalAlpha=1;
    fwT-=dt;if(fwT<=0){firework();fwT=.9+Math.random()*1.1}
    if(Math.random()<.08)hearts.push({x:Math.random()*W,y:H+10,vx:(Math.random()-.5)*.6,vy:-1-Math.random()*1.6,l:1,s:10+Math.random()*14});
